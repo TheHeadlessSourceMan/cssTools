@@ -5,6 +5,7 @@ import typing
 from paths import UrlCompatible,Url
 from htmlTools import HtmlAndText,Html
 import cssTools
+from rules import CssRules
 
 
 CssCompatible=typing.Union['Css',str]
@@ -37,17 +38,17 @@ class Css(HtmlAndText):
         self.suggestions_separator='_'
         self.suggestions_firstchar='abcdefghijklmnopurstuvwxyz'
         self.suggestions_otherchars='123456789abcdefghijklmnopurstuvwxyz'
-        self.rules:typing.List[cssTools.CssRule]
+        self.rules=CssRules()
 
     def __iter__(self):
         return iter(self.rules)
 
     def __getitem__(self,
-        idx:typing.Union[int,slice,cssTools.SearchNuggetCompatible]
+        idx:typing.Union[int,slice]
         )->typing.Union[None,cssTools.CssRule,cssTools.CssStyles]:
         """
         [] operator can take an int or slice, which works
-        on self.rules, or it can take a SearchNuggetCompatible,
+        on self.rules
         which performs a getStyles() search.
         Thus, css[".classname"] returns a Styles object for that css classname
         """
@@ -82,35 +83,26 @@ class Css(HtmlAndText):
             return True
         return False
 
-    def getRule(self,
-        nugg:cssTools.SearchNuggetCompatible
-        )->typing.Optional[cssTools.CssRule]:
+    def getRulesForElement(self,
+        element:HtmlElementLike
+        )->typing.Iterable[CssRule]:
         """
-        collect all the styles that apply to a given element
+        get all rules that apply to a given element
         """
-        nugg=cssTools.asSearchNugget(nugg)
-        for rule in self.rules:
-            if rule.matches(nugg):
-                return rule
-        return None
+        return self.rules.getRulesForElement(element)
+    getRules=getRulesForElement
 
     def getStyles(self,
-        nugg:cssTools.SearchNuggetCompatible
+        element:HtmlElementLike
         )->typing.Optional[cssTools.CssStyles]:
         """
-        collect all the styles that apply to a given element
+        create a combined style that collects all styles
+        that apply to a given element
         """
-        nugg=cssTools.asSearchNugget(nugg)
-        ret=None
-        for rule in self.rules:
-            styles=rule.getStyles(nugg)
-            if ret is None:
-                ret=styles
-            else:
-                ret.append(styles)
-        return ret
+        return self.rules.getStyles(element)
+    getStyle=getStyles
 
-    def addRule(self,rule:cssTools.CssRule)->typing.Dict[str,str]:
+    def addRule(self,rule:CssRulesCompatible)->typing.Dict[str,str]:
         """
         returns a new name if the rule had to be renamed to fit
 
@@ -119,31 +111,8 @@ class Css(HtmlAndText):
         :return: returns any values that had to be renamed
         :rtype: dict
         """
-        ret:typing.Dict[str,str]={}
-        for selector in rule.selectors:
-            # Rules have more than one selector!
-            ourRule=self.getRule(selector)
-            if ourRule is None:
-                # we don't have anything like that
-                ourRule=self.getRuleForStyles(rule.styles)
-                if ourRule is None:
-                    # add a new rule with just this one selector
-                    newRule=cssTools.CssRule(selector,rule.styles)
-                    self.rules.append(newRule)
-                else:
-                    ourRule.selectors.add(selector)
-            elif ourRule.styles==rule.styles:
-                # nothing to do.  it's exactly the same thing.
-                self.rules.append(rule)
-            else:
-                # it's a rule of the same name with different styles
-                # so we have to rename
-                newName=self.getAvailableSelectorName(selector)
-                if newName!=selector:
-                    ret[selector]=newName
-                newRule=cssTools.CssRule(newName,rule.styles)
-                self.rules.append(newRule)
-        return ret
+        return self.rules.append(rule)
+    addRules=addRule
 
     def getAvailableSelectorName(self,suggestion:str)->str:
         """
@@ -207,7 +176,9 @@ class Css(HtmlAndText):
             remapped.update(self.addRule(rule))
         return remapped
 
-    def obfuscate(self,ignore:typing.Dict=None)->typing.Dict[str,str]:
+    def obfuscate(self,
+        ignore:typing.Optional[typing.Iterable[str]]=None
+        )->typing.Dict[str,str]:
         """
         ignore is used to skip values that have already been used
 

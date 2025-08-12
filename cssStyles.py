@@ -7,8 +7,8 @@ import typing
 import cssTools
 
 
-CssStyle=str
-CssStylesCompatible=typing.Union['CssStyles',CssStyle]
+CssStylesCompatible=typing.Union['CssStyles',str,
+    typing.Iterable[typing.Union['CssStylesCompatible']]]
 def asCssStyles(styles:CssStylesCompatible)->'CssStyles':
     """
     Always returns a CssStyles object.

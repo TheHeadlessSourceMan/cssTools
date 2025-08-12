@@ -92,7 +92,7 @@ class CssRule:
         return self._styles==otherStyles
 
     def __eq__(self, # type: ignore
-        other:typing.Union[None,str,"CssRule",cssTools.SearchNuggetCompatible]
+        other:typing.Union[None,str,"CssRule"]
         )->bool:
         """
         Does this match another item.
@@ -116,35 +116,23 @@ class CssRule:
             return True
         return self.matches(other)
 
-    def matches(self,nugg:cssTools.SearchNuggetCompatible)->bool:
+    def matches(self,element:HtmlElementLike)->bool:
         """
         Determine if this rule applies to the given selection
         :rtype: bool
         """
-        nugg=cssTools.asSearchNugget(nugg)
-        #TODO: css paths not supported, only simple Tag,.Class,@Id
-        if nugg._idSelector in self._selectors: # pylint: disable=protected-access
-            return True
-        if nugg._classSelector in self._selectors: # pylint: disable=protected-access
-            return True
-        if nugg._tagSelector in self._selectors: # pylint: disable=protected-access
-            return True
-        return False
+        return self.selectors.matches(element)
 
     def getStyles(self,
-        nugg:cssTools.SearchNuggetCompatible
-        )->typing.Optional[cssTools.CssStyles]:
+        element:HtmlElementLike
+        )->typing.Optional[CssStyles]:
         """
         collect all the styles that apply to a given element
         """
-        nugg=cssTools.asSearchNugget(nugg)
-        ret=None
-        if self.matches(nugg):
-            nugg.rulesMatched.append(self)
-            ret=cssTools.CssStyles()
-            for style in self._styles:
-                ret.append(style)
-        return ret
+        if self.matches(element):
+            return self.styles
+        return CssStyles()
+    getStyle=getStyles
 
     def obfuscate(self,
         ignore:typing.Optional[typing.Dict]=None
@@ -174,6 +162,7 @@ class CssRules:
         for rule in self._rules:
             if rule.matches(element):
                 yield rule
+    getRules=getRulesForElement
 
     def getStylesForElement(self,element:HtmlElementLike)->CssStyles:
         """
@@ -215,21 +204,18 @@ class CssRules:
     remove=removeSelector
 
     def getStyles(self,
-        nugg:cssTools.SearchNuggetCompatible
-        )->typing.Optional[cssTools.CssStyles]:
+        element:HtmlElementLike
+        )->typing.Optional[CssStyles]:
         """
         collect all the styles that apply to a given element
         """
-        nugg=cssTools.asSearchNugget(nugg)
-        ret=None
+        styleList:typing.List[CssStyles]=[]
         for rule in self._rules:
-            style=rule.getStyles(nugg)
+            style=rule.getStyles(element)
             if style is not None:
-                if ret is None:
-                    ret=cssTools.CssStyles(style)
-                else:
-                    ret.append(style)
-        return ret
+                styleList.append(style)
+        return CssStyles(styleList)
+    getStyle=getStyles
 
     def obfuscate(self,
         ignore:typing.Optional[CssSelectorsCompatible]=None
