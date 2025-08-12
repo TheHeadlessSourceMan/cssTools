@@ -37,7 +37,17 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
         if styles is not None:
             self.assign(styles)
 
-    def __eq__(self,otherStyles:CssStylesCompatible)->bool:
+    def combined(self,other:CssStylesCompatible)->"CssStyles":
+        """
+        Get this style combined with some other.
+        """
+        return CssStyles((self,other))
+
+    def __add__(self,other:CssStylesCompatible)->"CssStyles":
+        return CssStyles((self,other))
+
+    def __eq__(self, # type: ignore
+        otherStyles:CssStylesCompatible)->bool:
         return self.sameStyles(otherStyles)
     def sameStyles(self,otherStyles:CssStylesCompatible)->bool:
         """
@@ -46,21 +56,21 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
         (Useful for things like reducing duplicates)
         """
         otherStyles=asCssStyles(otherStyles)
-        if len(self._items) != len(otherStyles):
+        if len(self._items)!=len(otherStyles):
             return False
         for item in self:
             if item not in otherStyles:
                 return False
         return True
 
-    def _decode(self,data:str)->None:
+    def appendCssString(self,data:str)->None:
         """
         decode from css string
         """
         data=data.strip()
         if data[0]=='{':
             data=data[1:-1].strip()
-        for styleItem in data.slpit(';'):
+        for styleItem in data.split(';'):
             nameval=[nv.strip() for nv in styleItem.split(':',1)]
             if len(nameval)>1:
                 self._items[nameval[0]]=nameval[1]
@@ -110,3 +120,4 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
         return self.getCssFileFormat(indent,indenter)
     def __str__(self,indent='',indenter='\t')->str:
         return self.getCssFileFormat(indent,indenter)
+CssStyle=CssStyles

@@ -2,6 +2,7 @@
 a handy, pythonic class wrapper around css
 """
 import typing
+from paths import UrlCompatible,Url
 from htmlTools import HtmlAndText,Html
 import cssTools
 
@@ -28,7 +29,10 @@ class Css(HtmlAndText):
     An entire css file (whether in its own file or embedded inside html)
     """
 
-    def __init__(self,filename=None,data=None):
+    def __init__(self,
+        filename:typing.Optional[UrlCompatible]=None,
+        data:typing.Optional[CssCompatible]=None):
+        """ """
         HtmlAndText.__init__(self,filename,data)
         self.suggestions_separator='_'
         self.suggestions_firstchar='abcdefghijklmnopurstuvwxyz'
@@ -39,7 +43,7 @@ class Css(HtmlAndText):
         return iter(self.rules)
 
     def __getitem__(self,
-        idx:typing.Union[int,typing.Tuple[int,int],cssTools.SearchNuggetCompatible]
+        idx:typing.Union[int,slice,cssTools.SearchNuggetCompatible]
         )->typing.Union[None,cssTools.CssRule,cssTools.CssStyles]:
         """
         [] operator can take an int or slice, which works
@@ -47,7 +51,7 @@ class Css(HtmlAndText):
         which performs a getStyles() search.
         Thus, css[".classname"] returns a Styles object for that css classname
         """
-        if isinstance(idx,(int,tuple)):
+        if isinstance(idx,(int,slice)):
             return self.rules[idx]
         return self.getStyles(idx)
 

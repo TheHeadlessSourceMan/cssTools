@@ -30,12 +30,13 @@ class SearchNugget:
     id,class,and tag name into their appropriate CSS selectors
     """
     def __init__(self,domElement:Element):
-        self.rulesMatched:cssTools.CssRule=[] # keep track of which rules matched, in order!
+        self.rulesMatched:typing.List[
+            cssTools.CssRule]=[] # keep track of which rules matched, in order!
         self._domElement=domElement
-        self._idSelector=domElement.attrib.get('id',None)
+        self._idSelector=domElement.attributes.get('id',None)
         if self._idSelector is not None:
-            self._idSelector='@'+self._idSelector
+            self._idSelector=f'@{self._idSelector.value}'
         self._tagSelector=domElement.tagName
-        self._classSelector=domElement.attrib.get('class',None)
+        self._classSelector=domElement.attributes.get('class',None)
         if self._classSelector is not None:
-            self._classSelector='.'+self._classSelector
+            self._classSelector=f'.{self._classSelector.value}'
