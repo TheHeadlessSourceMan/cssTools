@@ -5,9 +5,17 @@ A rule consists of a series of selectors and
 a series of CssStyles that they all map to
 """
 import typing
+import re
 from htmlTypes import HtmlElementLike
 from .cssStyles import CssStyles,CssStylesCompatible
 from .cssSelectors import CssSelector,CssSelectors,CssSelectorsCompatible,CssSelectorCompatible
+if typing.TYPE_CHECKING:
+    from .css import Css
+
+CssRuleCompatible=typing.Union[str,'CssRule']
+CssRulesCompatible=typing.Union[
+    CssRuleCompatible,'CssRules','Css',typing.Iterable['CssRuleCompatible']]
+
 
 class CssRule:
     """
@@ -146,14 +154,100 @@ class CssRule:
             ignore={}
         return {}
 
+    def getCssString(self,indent='\t',prepend='\n'):
+        """
+        Returns the css text
+        """
+        ret:typing.List[str]=[]
+        for selector in self.selectors:
+            ret.append(str(selector))
+        ret=[', '.join(ret),' {']
+        ret.append(self.styles.getCssString(indent,prepend))
+        ret.append(prepend)
+        ret.append('}')
+        return ''.join(ret)
+    #setCssString=assign
+
+    @property
+    def cssString(self)->str:
+        """
+        This object as a css string
+        """
+        return self.getCssString()
+    #@cssString.setter
+    #def cssString(self,cssString:str):
+    #    self.setCssString(cssString)
+
+    def __repr__(self)->str:
+        return self.getCssString()
+Rule=CssRule
+
 
 class CssRules:
     """
     A set of formatting rules.
     """
 
-    def __init__(self,rules:typing.Iterable[CssRule]):
-        self._rules:typing.List[CssRule]=list(rules)
+    RULES_SPLITTER_RE=re.compile(
+        r"""(?P<selectors>[.@:a-z][^{]*)\{(?P<styles>[^}]*)\}""",re.IGNORECASE|re.DOTALL)
+
+    def __init__(self,rules:typing.Optional[CssRulesCompatible]=None):
+        self._rules:typing.List[CssRule]=[]
+        if rules is not None:
+            self.addCssRules(rules)
+
+    def __iter__(self)->typing.Iterator[CssRule]:
+        return iter(self._rules)
+
+    @typing.overload
+    def __getitem__(self,idx:int
+        )->CssRule:
+        ...
+    @typing.overload
+    def __getitem__(self,idx:slice
+        )->typing.Iterable[CssRule]:
+        ...
+    def __getitem__(self,idx:typing.Union[int,slice]
+        )->typing.Union[CssRule,typing.Iterable[CssRule]]:
+        return self._rules[idx]
+
+    def __len__(self)->int:
+        return len(self._rules)
+
+    def clear(self):
+        """
+        clear out all rules
+        """
+        self._rules.clear()
+
+    def assign(self,rules:CssRulesCompatible)->None:
+        """
+        Assign this object to a set of rules
+        """
+        self.clear()
+        self.addCssRules(rules)
+
+    def addCssRules(self,rules:CssRulesCompatible)->None:
+        """
+        Add one or more rules
+        """
+        if isinstance(rules,str):
+            for m in self.RULES_SPLITTER_RE.finditer(rules):
+                rule=CssRule(m.group('selectors'),m.group('styles'))
+                self._rules.append(rule)
+        elif isinstance(rules,CssRule):
+            self._rules.append(rules)
+        elif isinstance(rules,CssRules):
+            self._rules.extend(rules)
+        else:
+            for rule in rules:
+                self.addCssRule(rule)
+    addCssRule=addCssRules
+    addRules=addCssRules
+    addRule=addCssRules
+    add=addCssRules
+    append=addCssRules
+    extend=addCssRules
 
     def getRulesForElement(self,element:HtmlElementLike)->typing.Iterable[CssRule]:
         """
@@ -173,6 +267,18 @@ class CssRules:
         return CssStyles(self.getRulesForElement(element))
     getStyleForElement=getStylesForElement
 
+    def hasSelector(self,cssSelector:CssSelectorCompatible)->bool:
+        """
+        determine if the thing has a given css selector
+
+        :param str: [description]
+        :type str: [type]
+        """
+        for rule in self._rules:
+            if rule.hasSelector(cssSelector):
+                return True
+        return False
+
     def condense(self,rename:bool=False)->typing.Dict[str,str]:
         """
         For all Rules that share the same set of css styles,
@@ -189,6 +295,7 @@ class CssRules:
         """
         renamed:typing.Dict[str,str]={}
         # TODO: write the condensing routine
+        _=rename
         return renamed
 
     def removeSelector(self,cssSelector:CssSelectorCompatible)->None:
@@ -229,7 +336,6 @@ class CssRules:
         returns {originalName:newName}
         """
         import random
-        import re
         obfuscationKey:typing.Dict[CssSelector,CssSelector]={}
         if ignore is not None:
             # each "ignore" key simply obfuscates to itself
@@ -279,3 +385,27 @@ class CssRules:
                 rule.removeSelector(selector)
                 rule.addSelector(obfuscationKey[selector])
         return obfuscationKey
+
+    def getCssString(self,indent='\t',prepend='\n'):
+        """
+        Returns the css text
+        """
+        ret:typing.List[str]=[]
+        for rule in self._rules:
+            ret.append(rule.getCssString(indent,prepend))
+        return ('\n'+prepend).join(ret)
+    setCssString=assign
+
+    @property
+    def cssString(self)->str:
+        """
+        This object as a css string
+        """
+        return self.getCssString()
+    @cssString.setter
+    def cssString(self,cssString:str):
+        self.setCssString(cssString)
+
+    def __repr__(self)->str:
+        return self.getCssString()
+Rules=CssRules

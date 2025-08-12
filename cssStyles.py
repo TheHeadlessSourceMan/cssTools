@@ -102,7 +102,7 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
         """
         return self.getCssFileFormat()
 
-    def getCssFileFormat(self,indent='',indenter='\t')->str:
+    def getCssFileFormat(self,indent='',indenter='\t',newline='\n',curlies=True)->str:
         """
         returns css of the form:
         {
@@ -111,13 +111,39 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
             ...
         }
         """
-        ret=['%s{'%indent]
+        ret:typing.List[str]=[]
+        if curlies:
+            ret=[indent+'{']
         for kv in self._items.items():
-            ret.append('%s:%s;'%kv)
-        return "%s\n%s}"%(('%s%s\n'%(indent+indenter)).join(ret),indent)
+            ret.append(f'{indent}{indenter}{kv[0]}: {kv[1]};')
+        if curlies:
+            ret.append(indent+'}')
+        return newline.join(ret)
 
     def __repr__(self,indent='',indenter='\t')->str:
         return self.getCssFileFormat(indent,indenter)
     def __str__(self,indent='',indenter='\t')->str:
         return self.getCssFileFormat(indent,indenter)
+
+    def getCssString(self,indent='\t',prepend='\n'):
+        """
+        Returns the css text
+        """
+        return self.getCssFileFormat(indenter=indent,newline=prepend)
+    def setCssString(self,cssString:str)->None:
+        """
+        Assigns the css text
+        """
+        self.assign(cssString)
+
+    @property
+    def cssString(self)->str:
+        """
+        This object as a css string
+        """
+        return self.getCssString('','')
+    @cssString.setter
+    def cssString(self,cssString:str):
+        self.setCssString(cssString)\
+
 CssStyle=CssStyles

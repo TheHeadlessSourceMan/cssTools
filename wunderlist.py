@@ -29,8 +29,12 @@ class Wunderlist(typing.Generic[ListItemType,ListItemCompatibleType]):
         if items is not None:
             self.assign(items)
 
-    def __iter__(self):
-        return self._items.values()
+    def __iter__(self)->typing.Iterator[ListItemType]:
+        for item in self._items.values():
+            yield item
+
+    def __len__(self)->int:
+        return len(self._items)
 
     def __getitem__(self,
         idx:typing.Union[int,slice,str]
