@@ -16,7 +16,9 @@ class CssSelectorRequirement:
     """
     Part of a css selector
     """
-    PART_SPLITTER_RE=re.compile(r"""([.@])?([0-9a-z_]+)""",re.DOTALL|re.IGNORECASE)
+    PART_SPLITTER_RE=re.compile(
+        r"""([.@])?([0-9a-z_]+)""",
+        re.DOTALL|re.IGNORECASE)
 
     def __init__(self,match:typing.Union[None,str,typing.Match[str]]):
         """
@@ -25,7 +27,7 @@ class CssSelectorRequirement:
         self._nameMatchRe:typing.Union[None,str,typing.Pattern[str]]=None
         self._attributeMatchRe:typing.Dict[
             typing.Union[str,typing.Pattern[str]],
-            typing.Union[str,typing.Pattern[str]]]={} # attributeName,attributeValue
+            typing.Union[str,typing.Pattern[str]]]={} # attributeName,attributeValue # noqa: E501
         if match is not None:
             self.assign(match)
 
@@ -65,7 +67,7 @@ class CssSelectorRequirement:
                 return False
         attributes=element.attributes
         if self._attributeMatchRe:
-            if attributes is None:
+            if attributes is None or not attributes: # type: ignore
                 return False
             foundOne=False
             for keyMatch,valueMatch in self._attributeMatchRe.items():
@@ -108,7 +110,7 @@ class CssSelector:
         if selector is not None:
             self.assign(selector)
 
-    def __eq__(self,
+    def __eq__(self, # type: ignore
         other:typing.Union[CssSelectorCompatible,HtmlElementLike]
         )->bool:
         if isinstance(other,(str,CssSelector)):
@@ -180,12 +182,12 @@ class CssSelectors:
         """
         return self._selectors[idx]
 
-    def __eq__(self,
+    def __eq__(self, # type: ignore
         other:typing.Union[CssSelectorsCompatible,HtmlElementLike]
         )->bool:
         if isinstance(other,(str,CssSelectors)):
             return other==self._selectorsString
-        return self.matches(other)
+        return self.matches(other) # type: ignore
 
     def matches(self,element:HtmlElementLike)->bool:
         """
@@ -203,7 +205,8 @@ class CssSelectors:
         self._selectors=[]
         self.addCssSelectors(selectors)
 
-    def addCssSelectors(self,selectors:typing.Optional[CssSelectorsCompatible]):
+    def addCssSelectors(self,
+        selectors:typing.Optional[CssSelectorsCompatible]):
         """
         Add selectors
         """
@@ -226,7 +229,8 @@ class CssSelectors:
     append=addCssSelectors
     extend=addCssSelectors
 
-    def removeCssSelectors(self,selectors:typing.Optional[CssSelectorsCompatible]):
+    def removeCssSelectors(self,
+        selectors:typing.Optional[CssSelectorsCompatible]):
         """
         Remove any number of selectors
         """

@@ -73,21 +73,27 @@ class Wunderlist(typing.Generic[ListItemType,ListItemCompatibleType]):
         return default
 
     def update(self,
-        items:typing.Union[None,str,ListItemCompatibleType,typing.Iterable[ListItemCompatibleType]]
+        items:typing.Union[None,
+            str,ListItemCompatibleType,
+            typing.Iterable[ListItemCompatibleType]]
         )->None:
         """
         same as append
         """
         self.append(items)
     def extend(self,
-        items:typing.Union[None,str,ListItemCompatibleType,typing.Iterable[ListItemCompatibleType]]
+        items:typing.Union[None,
+            str,ListItemCompatibleType,
+            typing.Iterable[ListItemCompatibleType]]
         )->None:
         """
         same as append
         """
         self.append(items)
     def append(self,
-        items:typing.Union[None,str,ListItemCompatibleType,typing.Iterable[ListItemCompatibleType]]
+        items:typing.Union[None,
+            str,ListItemCompatibleType,
+            typing.Iterable[ListItemCompatibleType]]
         )->None:
         """
         Add one or more items to this list
@@ -117,7 +123,9 @@ class Wunderlist(typing.Generic[ListItemType,ListItemCompatibleType]):
             yield ListItemType(item.strip())
 
     def assign(self,
-        items:typing.Union[None,str,ListItemCompatibleType,typing.Iterable[ListItemCompatibleType]]
+        items:typing.Union[None,
+            str,ListItemCompatibleType,
+            typing.Iterable[ListItemCompatibleType]]
         )->None:
         """
         Assign this list to new values

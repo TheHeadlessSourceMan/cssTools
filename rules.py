@@ -8,7 +8,8 @@ import typing
 import re
 from htmlTypes import HtmlElementLike
 from .cssStyles import CssStyles,CssStylesCompatible
-from .cssSelectors import CssSelector,CssSelectors,CssSelectorsCompatible,CssSelectorCompatible
+from .cssSelectors import (CssSelector,CssSelectors,
+    CssSelectorsCompatible,CssSelectorCompatible)
 if typing.TYPE_CHECKING:
     from .css import Css
 
@@ -58,7 +59,9 @@ class CssRule:
         """
         return len(self.selectors)
 
-    def hasSelector(self,selector:typing.Optional[CssSelectorCompatible])->bool:
+    def hasSelector(self,
+        selector:typing.Optional[CssSelectorCompatible]
+        )->bool:
         """
         See if the given selector is present in the set of selectors
 
@@ -143,7 +146,7 @@ class CssRule:
     getStyle=getStyles
 
     def obfuscate(self,
-        ignore:typing.Optional[typing.Dict]=None
+        ignore:typing.Optional[typing.Dict[str,str]]=None
         )->typing.Dict[str,str]:
         """
         ignore is used to skip values that have already been used
@@ -154,7 +157,7 @@ class CssRule:
             ignore={}
         return {}
 
-    def getCssString(self,indent='\t',prepend='\n'):
+    def getCssString(self,indent:str='\t',prepend:str='\n')->str:
         """
         Returns the css text
         """
@@ -189,7 +192,8 @@ class CssRules:
     """
 
     RULES_SPLITTER_RE=re.compile(
-        r"""(?P<selectors>[.@:a-z][^{]*)\{(?P<styles>[^}]*)\}""",re.IGNORECASE|re.DOTALL)
+        r"""(?P<selectors>[.@:a-z][^{]*)\{(?P<styles>[^}]*)\}""",
+        re.IGNORECASE|re.DOTALL)
 
     def __init__(self,rules:typing.Optional[CssRulesCompatible]=None):
         self._rules:typing.List[CssRule]=[]
@@ -198,6 +202,23 @@ class CssRules:
 
     def __iter__(self)->typing.Iterator[CssRule]:
         return iter(self._rules)
+
+    def keys(self)->typing.Iterable[str]:
+        """
+        Get all selector keys used in the rules.
+
+        :return: a list of selector keys
+        """
+        return [rule.selectors for rule in self._rules]
+    @property
+    def tagNames(self)->typing.Iterable[str]:
+        """
+        Get all tag names used in the rules.
+
+        :return: a list of tag names
+        :rtype: typing.Iterable[str]
+        """
+        return [tag for rule in self._rules for tag in rule.tagNames]
 
     @typing.overload
     def __getitem__(self,idx:int
@@ -249,7 +270,9 @@ class CssRules:
     append=addCssRules
     extend=addCssRules
 
-    def getRulesForElement(self,element:HtmlElementLike)->typing.Iterable[CssRule]:
+    def getRulesForElement(self,
+        element:HtmlElementLike
+        )->typing.Iterable[CssRule]:
         """
         get all rules that apply to a given element
         """
@@ -258,7 +281,9 @@ class CssRules:
                 yield rule
     getRules=getRulesForElement
 
-    def getStylesForElement(self,element:HtmlElementLike)->CssStyles:
+    def getStylesForElement(self,
+        element:HtmlElementLike
+        )->CssStyles:
         """
         Get the final style for this element.
 
@@ -386,7 +411,7 @@ class CssRules:
                 rule.addSelector(obfuscationKey[selector])
         return obfuscationKey
 
-    def getCssString(self,indent='\t',prepend='\n'):
+    def getCssString(self,indent:str='\t',prepend:str='\n')->str:
         """
         Returns the css text
         """

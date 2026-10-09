@@ -102,7 +102,12 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
         """
         return self.getCssFileFormat()
 
-    def getCssFileFormat(self,indent='',indenter='\t',newline='\n',curlies=True)->str:
+    def getCssFileFormat(self,
+        indent:str='',
+        indenter:str='\t',
+        newline:str='\n',
+        curlies:bool=True
+        )->str:
         """
         returns css of the form:
         {
@@ -120,12 +125,12 @@ class CssStyles(cssTools.Wunderlist['CssStyles',CssStylesCompatible]):
             ret.append(indent+'}')
         return newline.join(ret)
 
-    def __repr__(self,indent='',indenter='\t')->str:
+    def __repr__(self,indent:str='',indenter:str='\t')->str:
         return self.getCssFileFormat(indent,indenter)
-    def __str__(self,indent='',indenter='\t')->str:
+    def __str__(self,indent:str='',indenter:str='\t')->str:
         return self.getCssFileFormat(indent,indenter)
 
-    def getCssString(self,indent='\t',prepend='\n'):
+    def getCssString(self,indent:str='\t',prepend:str='\n')->str:
         """
         Returns the css text
         """

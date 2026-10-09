@@ -44,6 +44,15 @@ class Css(Text):
         self.suggestions_otherchars='123456789abcdefghijklmnopurstuvwxyz'
         self.rules:CssRules=CssRules()
 
+    @property
+    def tagNames(self)->typing.Iterable[str]:
+        """
+        Get all tag names used in the css rules.
+
+        :return: a list of tag names
+        """
+        return self.rules.tagNames
+
     @typing.overload
     def __getitem__(self,idx:int
         )->CssRule:
@@ -135,8 +144,8 @@ class Css(Text):
         NOTE: if the suggestion is a tag-type selector and it has to change,
             will return a .class type selector.
 
-        :param suggestion: if you don't have a name preference, you can send in '','@','.'
-            to tell it what type
+        :param suggestion: if you don't have a name preference,
+            you can send in '','@','.' to tell it what type
         :type suggestion: str
         :return: a new name
         :rtype: str
@@ -148,13 +157,14 @@ class Css(Text):
                 suggestion='.'+suggestion
             else:
                 return suggestion
-        suggStack=[0,0,['*']] # column,columnidx,first_col_choices,subsequent_col_choices,current
+        suggStack=[0,0,['*']] # column,columnidx,first_col_choices,subsequent_col_choices,current # noqa: E501
         def nextSuggestion()->str:
             """
             get the next suggestion affix
             """
             if suggStack[0]==0:
-                suggStack[2][suggStack[0]]=self.suggestions_firstchar[suggStack[1]]
+                suggStack[2][suggStack[0]]=\
+                    self.suggestions_firstchar[suggStack[1]]
                 sugg=''.join(suggStack[2])
                 suggStack[1]+=1
                 if suggStack[1]>=len(self.suggestions_firstchar):
@@ -162,7 +172,8 @@ class Css(Text):
                     suggStack[1]=0
                     suggStack[2].append('*')
             else:
-                suggStack[4][suggStack[0]]=self.suggestions_otherchars[suggStack[1]]
+                suggStack[4][suggStack[0]]=\
+                    self.suggestions_otherchars[suggStack[1]]
                 sugg=''.join(suggStack[2])
                 suggStack[1]+=1
                 if suggStack[1]>=len(self.suggestions_otherchars):
@@ -177,7 +188,7 @@ class Css(Text):
             if suggestion in ('.','#'):
                 trySuggestion=suggestion+nextSuggestion()
             else:
-                trySuggestion=suggestion+self.suggestions_separator+nextSuggestion()
+                trySuggestion=suggestion+self.suggestions_separator+nextSuggestion() # noqa: E501
 
     def obfuscate(self,
         ignore:typing.Optional[typing.Iterable[str]]=None
@@ -229,7 +240,7 @@ class Css(Text):
                 else:
                     el.tagName=translation
 
-    def getCssString(self,indent='\t',prepend='\n'):
+    def getCssString(self,indent:str='\t',prepend:str='\n')->str:
         """
         Returns the css text
         """
